@@ -107,5 +107,6 @@ public class GithubEventLdap {
         		               sLogPath,
         		               sBCC,
         		               cLDAP);
+		
 	} // main
 }
