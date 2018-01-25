@@ -1,0 +1,7 @@
+Dear CPO Business Unit Administrators:<br><br>
+***TEST***A private GitHub repository, <b>%2</b>, was forked to folder, <b>%1<b>,  
+by GitHub user id, <b>%3</b> with no corporate id, e.g. mail address, <b>%4</b>.<br><br>
+As per policy, we are notifying you of this event.<br><br>
+For questions regarding this mailing, please contact: Team-GIS-ToolsSolutions-Global@ca.com.<br><br>
+Regards,<br>
+GIS Tools Solutions Team
