@@ -40,12 +40,12 @@ public class GithubEventLdap {
 	
 	static String sBCC = "";
 	static CommonLdap frame;
-	static String sProblems = "";
 	static String sAccessToken = "";
 	static String sAPI = "";
 	static String sLocation = "";
-	static List<String> ticketProblems = new ArrayList<String>();
+	static String sAuthFile = "";
 	static JCaContainer cUserInfo = new JCaContainer();
+	static JCaContainer cAuthorizations = new JCaContainer();
 	static DateFormat dateFormat;
 	
 	// Notification
@@ -137,6 +137,24 @@ public class GithubEventLdap {
 			boolean isPrivate = json.getBoolean("private");
 			if (isPrivate) return false;
 			
+			//Check if the repository is authorized to be public
+			for (int iIndex=0; iIndex<cAuthorizations.getKeyElementCount("policy"); iIndex++) {
+				String aLocation = cAuthorizations.getString("location", iIndex);
+				String aPolicy   = cAuthorizations.getString("policy", iIndex);
+				String aOrg      = cAuthorizations.getString("organization", iIndex);
+				String aRepo     = cAuthorizations.getString("repository", iIndex);
+				String aUser     = cAuthorizations.getString("user", iIndex);
+				
+				if (aLocation.equalsIgnoreCase(sLocation) &&
+					aPolicy.equalsIgnoreCase("public") &&
+					aOrg.equalsIgnoreCase(sOrg) &&
+					aRepo.equalsIgnoreCase(sRepo) &&
+					aUser.equalsIgnoreCase("all")) {
+						return false;
+				}
+			}
+			
+			//Run a curl command to change the repository status to private
 			String sMessage = "Making "+sLocation+" repository, "+sRepo+", in organization, "+sOrg+", private.";
 			String sCommand = "curl -X PATCH -d \" { \\\"private\\\": true } \" -H \"Authorization: token "+sAccessToken+"\"  https://"+sAPI+"/repos/"+sOrg+"/"+sRepo;
 			
@@ -209,6 +227,10 @@ public class GithubEventLdap {
 			{
 				sMapFile = args[++i];
 			}			
+			else if (args[i].compareToIgnoreCase("-authfile") == 0 )
+			{
+				sAuthFile = args[++i];
+			}			
 			else if (args[i].compareToIgnoreCase("-bcc") == 0 )
 			{
 				sBCC = args[++i];
@@ -263,6 +285,10 @@ public class GithubEventLdap {
         	}
 			else
 				cUserInfo.clear();
+			
+			if (!sAuthFile.isEmpty()) {
+				frame.readInputListGeneric(cAuthorizations, sMapFile, ',');			
+			}
 			
 			switch (sType) {
 			case "github.com":
