@@ -100,6 +100,7 @@ public class GithubEventLdap {
 			while (rSet.next()) {		
 				cEvents.setString("ApplicationLocation", rSet.getString("ApplicationLocation").trim(), iIndex);
 				cEvents.setString("ResourceOwner1",      rSet.getString("ResourceOwner1").trim(), iIndex);
+				cEvents.setString("ResourceOwner2",      rSet.getString("ResourceOwner2").trim(), iIndex);
 				cEvents.setString("ResourceName",        rSet.getString("ResourceName").trim(), iIndex);
 				cEvents.setString("EventAttributes",     rSet.getString("EventAttributes").trim(), iIndex);
 				cEvents.setString("User_ID",             rSet.getString("User_ID").trim(), iIndex);			
@@ -148,8 +149,8 @@ public class GithubEventLdap {
 				if (aLocation.equalsIgnoreCase(sLocation) &&
 					aPolicy.equalsIgnoreCase("public") &&
 					aOrg.equalsIgnoreCase(sOrg) &&
-					aRepo.equalsIgnoreCase(sRepo) &&
-					aUser.equalsIgnoreCase("all")) {
+					(aRepo.equalsIgnoreCase(sRepo) || aRepo.equalsIgnoreCase("***all***")) &&
+					aUser.equalsIgnoreCase("***all***")) {
 						return false;
 				}
 			}
@@ -314,7 +315,8 @@ public class GithubEventLdap {
 					
 					String sGithubID = cEvents.getString("User_ID", iIndex);
 					String sCorpID = lookupCorporateID(sGithubID, cUserInfo, sType);
-					String sOrg = cEvents.getString("ResourceOwner1", iIndex);
+					String sOrg =  cEvents.getString("ResourceOwner1", iIndex);
+					String tOrg =  cEvents.getString("ResourceOwner2", iIndex);
 					String sRepo = cEvents.getString("ResourceName", iIndex);
 					
 					//2. parse the event type
@@ -360,12 +362,21 @@ public class GithubEventLdap {
 										
 					//3. Lookup the user's mail address
 					String uMail = "";
-					int[] iUser = cLDAP.find("pmfkey", sCorpID);
+					boolean bHasCorporateID = false;
+					int[] iUser = cLDAP.find("sAMAccountName", sCorpID);
 					if (iUser.length > 0) {
 						uMail = cLDAP.getString("mail", iUser[0]);
+						bHasCorporateID = true;
+					}
+					else {
+						if (sCorpID.contains("@")) {
+							uMail = sCorpID;
+						}
 					}
 					
 					String eMail = "smike11@ca.com;barth03@ca.com;flokr01@ca.com";
+					if (!uMail.isEmpty())
+						eMail += ";"+uMail;
 					
 					//4. Process Publicized Repos
 					if (eType.equalsIgnoreCase("public") || 
@@ -380,11 +391,21 @@ public class GithubEventLdap {
 					}
 					else if (eType.equalsIgnoreCase("fork") &&
 							 uType.equalsIgnoreCase("user") &&
-							 uMail.isEmpty()) {
+							 rType.equalsIgnoreCase("private") &&
+							 !bHasCorporateID ) {
 						sResourceFile = "Notification_of_Forked_Repository_by_User.txt";
+						
 						if (processPolicyOnForkedRepositoriesByUser(sOrg, sRepo, sCorpID)) {							
 							String sSubject = "A "+sLocation+" Repository Was Forked Out Of Policy";
-					        String bodyText = frame.readTextResource(sResourceFile, sOrg, sRepo, sGithubID, sCorpID);								        								          
+					        String bodyText = frame.readTextResource(sResourceFile, sOrg, sRepo, sGithubID, uMail);	
+					        // additional substitutions
+					        int nIndex;
+					        nIndex = bodyText.indexOf("%5");
+					        if (nIndex >= 0)
+					        	bodyText = bodyText.substring(0, nIndex) +uType+ bodyText.substring(nIndex+2);
+					        nIndex = bodyText.indexOf("%6");
+					        if (nIndex >= 0)
+					        	bodyText = bodyText.substring(0, nIndex) +tOrg+ bodyText.substring(nIndex+2);
 					        frame.sendEmailNotification(eMail, sSubject, bodyText, true);																				
 						}
 					}
