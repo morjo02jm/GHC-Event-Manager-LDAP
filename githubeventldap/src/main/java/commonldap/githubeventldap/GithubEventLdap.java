@@ -110,7 +110,7 @@ public class GithubEventLdap {
 			if (iIndex>0) {
 				frame.printLog(dateFormat.format(new Date())+":"+iIndex+" Event Records Read.");	
 				sqlError = "SQLServer. Error marking webhook events as processed.";
-				sqlStmt = "update GITHUB_EVENTS set ProcessTime=GetUTCDate() where ProcessTime IS NULL";
+				sqlStmt = "update GITHUB_EVENTS set ProcessTime=GetUTCDate() where ProcessTime IS NULL and ApplicationLocation='"+sAppLoc+"'";
 				pstmt=conn.prepareStatement(sqlStmt); 
 				int iResult = pstmt.executeUpdate();
 				if (iResult == 0) {
