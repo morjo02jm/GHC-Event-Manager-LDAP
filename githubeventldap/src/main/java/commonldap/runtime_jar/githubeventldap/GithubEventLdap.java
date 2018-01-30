@@ -374,7 +374,7 @@ public class GithubEventLdap {
 						}
 					}
 					
-					String eMail = "smike11@ca.com;barth03@ca.com;flokr01@ca.com";
+					String eMail = "SourceCode@ca.com";
 					if (!uMail.isEmpty())
 						eMail += ";"+uMail;
 					
