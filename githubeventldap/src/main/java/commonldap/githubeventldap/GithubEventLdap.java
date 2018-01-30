@@ -1,4 +1,4 @@
-package commonldap.runtime_jar.githubeventldap;
+package commonldap.githubeventldap;
 
 import org.json.*;
 
