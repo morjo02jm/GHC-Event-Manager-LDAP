@@ -65,7 +65,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>commonldap.githubeventldap.GihubEventLdap</mainClass>
+							<mainClass>commonldap.githubeventldap.GithubEventLdap</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
