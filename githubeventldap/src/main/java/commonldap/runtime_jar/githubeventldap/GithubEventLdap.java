@@ -392,7 +392,7 @@ public class GithubEventLdap {
 					else if (eType.equalsIgnoreCase("fork") &&
 							 uType.equalsIgnoreCase("user") &&
 							 rType.equalsIgnoreCase("private") &&
-							 !bHasCorporateID ) {
+							 true /* !bHasCorporateID */ ) {
 						sResourceFile = "Notification_of_Forked_Repository_by_User.txt";
 						
 						if (processPolicyOnForkedRepositoriesByUser(sOrg, sRepo, sCorpID)) {							

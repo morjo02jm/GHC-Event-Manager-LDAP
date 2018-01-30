@@ -1,8 +1,8 @@
 Dear CPO Business Unit Administrators:<br><br>
-***TEST***A private GitHub repository, <b>%2</b>, was forked from organization, <b>%1</b>, 
+A private GitHub repository, <b>%2</b>, was forked from organization, <b>%1</b>, 
 to %5 target location, <b>%6</b>, 
-by a non-corporate GitHub user id, <b>%3</b>, with email address, <b>%4</b>.<br><br>
-As per policy, we are notifying you of this event.<br><br>
+by GitHub user id, <b>%3</b>, with email address, <b>%4</b>.<br><br>
+By policy, private GitHub repositories in organizations owned by CA Technologies should only be forked to other organizations owned by CA Technologies.<br><br>
 For questions regarding this mailing, please contact: Team-GIS-ToolsSolutions-Global@ca.com.<br><br>
 Regards,<br>
 GIS Tools Solutions Team
