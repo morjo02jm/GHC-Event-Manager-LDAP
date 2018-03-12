@@ -378,6 +378,32 @@ public class GithubEventLdap {
 					if (!uMail.isEmpty())
 						eMail += ";"+uMail;
 					
+					//If the email is blank, the notice needs to go to the org contacts
+					if (eMail.isEmpty()) {
+						switch (sOrg) {
+						case "RallySoftware":
+						case "RallyApps":
+						case "CASaaSOps":
+						case "waffleio":
+							eMail = "Team-GIS-githubcom-"+sOrg+"-Contacts@ca.com";
+						case "RallyTools":
+						case "RallyCommunity":
+							eMail = "morky01@ca.com";
+							break;
+						case "flowdock":
+							eMail = "gelgw01@ca.com";
+							break;
+						case "Blazemeter":
+							eMail = "github@blazemeter.com";
+							break;
+						case "CATechnologies":
+							eMail = "poibr01@ca.com";
+							break;
+						default:
+							break;
+						}
+					}
+					
 					//4. Process Publicized Repos
 					if (eType.equalsIgnoreCase("public") || 
 						(eType.equalsIgnoreCase("repository") && 
