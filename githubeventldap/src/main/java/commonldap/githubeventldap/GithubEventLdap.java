@@ -55,6 +55,22 @@ public class GithubEventLdap {
 	{
 		// Leaving empty
 	}
+
+	private static boolean isOrgTracked(String tOrg) {
+		if (tOrg.equalsIgnoreCase("CASaaSOps")||
+			tOrg.equalsIgnoreCase("RallySoftware") ||
+			tOrg.equalsIgnoreCase("RallyCommunity") ||
+			tOrg.equalsIgnoreCase("RallyTools") ||
+			tOrg.equalsIgnoreCase("RallyApps") ||
+			tOrg.equalsIgnoreCase("flowdock") ||
+			tOrg.equalsIgnoreCase("CATechnologies") ||
+			tOrg.equalsIgnoreCase("waffleio") ||
+			tOrg.equalsIgnoreCase("Blazemeter")) 
+		{
+			return true;
+		}
+		return false;
+	}; //doesOrgBelongToCA
 	
 	private static String lookupCorporateID(String sGithubID, JCaContainer cUserInfo, String sType) {
 		String sCorpID = sGithubID;
@@ -64,7 +80,7 @@ public class GithubEventLdap {
 			sCorpID = cUserInfo.getString((sType=="ghe"?"raw_login":"pmfkey"), aID[0]);
 		}
 		return sCorpID;
-	}
+	} // lookupCorporateID
 	
 	private static void readUnprocessedEvents(JCaContainer cEvents, String sImagDBPassword, String sType) 
 	{
@@ -189,7 +205,7 @@ public class GithubEventLdap {
 	
 	private static boolean processPolicyOnForkedRepositoriesByUser(String sOrg, String sRepo, String sCorpID) {
 		return true;
-	} //processPolicyOnForkedRepositoriesByUser(sOrg, sRepo, sCorpID, sType, sAccessToken)
+	} //processPolicyOnForkedRepositoriesByUser
 	
 	
 	
@@ -416,7 +432,8 @@ public class GithubEventLdap {
 						}
 					}
 					else if (eType.equalsIgnoreCase("fork") &&
-							 uType.equalsIgnoreCase("user") &&
+							 (uType.equalsIgnoreCase("user") || 
+							  (uType.equalsIgnoreCase("organization") && !isOrgTracked(tOrg)) ) &&
 							 rType.equalsIgnoreCase("private") &&
 							 true /* !bHasCorporateID */ ) {
 						sResourceFile = "Notification_of_Forked_Repository_by_User.txt";
