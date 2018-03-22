@@ -46,6 +46,7 @@ public class GithubEventLdap {
 	static String sAuthFile = "";
 	static JCaContainer cUserInfo = new JCaContainer();
 	static JCaContainer cAuthorizations = new JCaContainer();
+	static JCaContainer cOrg = new JCaContainer();
 	static DateFormat dateFormat;
 	
 	// Notification
@@ -330,10 +331,19 @@ public class GithubEventLdap {
 					if (!sLocation.equalsIgnoreCase(aLocation)) continue;
 					
 					String sGithubID = cEvents.getString("User_ID", iIndex);
-					String sCorpID = lookupCorporateID(sGithubID, cUserInfo, sType);
 					String sOrg =  cEvents.getString("ResourceOwner1", iIndex);
 					String tOrg =  cEvents.getString("ResourceOwner2", iIndex);
 					String sRepo = cEvents.getString("ResourceName", iIndex);
+					
+					if (sType.equalsIgnoreCase("github.com")) {
+						int [] iOrg = cOrg.find("organization", sOrg);
+						if (iOrg.length == 0) {
+							String sProblems = "";
+							List<String> ticketProblems = new ArrayList<String>();
+							frame.readGHCOrganizationSCIMLinkage(cUserInfo, sOrg, sAccessToken, "C:\\GitHub", sProblems, ticketProblems);
+						}
+					}
+					String sCorpID = lookupCorporateID(sGithubID, cUserInfo, sType);
 					
 					//2. parse the event type
 					String sAttributes = cEvents.getString("EventAttributes", iIndex);
@@ -399,21 +409,14 @@ public class GithubEventLdap {
 						switch (sOrg) {
 						case "RallySoftware":
 						case "RallyApps":
-						case "CASaaSOps":
-						case "waffleio":
-							eMail = "Team-GIS-githubcom-"+sOrg+"-Contacts@ca.com";
 						case "RallyTools":
 						case "RallyCommunity":
-							eMail = "morky01@ca.com";
-							break;
+						case "CASaaSOps":
+						case "waffleio":
 						case "flowdock":
-							eMail = "gelgw01@ca.com";
-							break;
 						case "Blazemeter":
-							eMail = "github@blazemeter.com";
-							break;
 						case "CATechnologies":
-							eMail = "poibr01@ca.com";
+							eMail = "Team-GIS-githubcom-"+sOrg+"-Contacts@ca.com";
 							break;
 						default:
 							break;
