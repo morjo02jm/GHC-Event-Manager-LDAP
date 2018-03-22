@@ -323,6 +323,7 @@ public class GithubEventLdap {
 			}
 			
 			do {
+				cOrg.clear();
 				JCaContainer cEvents = new JCaContainer();
 				readUnprocessedEvents(cEvents, sImagDBPassword, sType);	
 				
@@ -341,6 +342,8 @@ public class GithubEventLdap {
 							String sProblems = "";
 							List<String> ticketProblems = new ArrayList<String>();
 							frame.readGHCOrganizationSCIMLinkage(cUserInfo, sOrg, sAccessToken, "C:\\GitHub", sProblems, ticketProblems);
+							int cIndex = cOrg.getKeyElementCount("organization");
+							cOrg.setString("organization", sOrg, cIndex);							
 						}
 					}
 					String sCorpID = lookupCorporateID(sGithubID, cUserInfo, sType);
