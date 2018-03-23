@@ -422,6 +422,7 @@ public class GithubEventLdap {
 							eMail = "Team-GIS-githubcom-"+sOrg+"-Contacts@ca.com";
 							break;
 						default:
+							eMail = "Team-GIS-githubcom-GHCAdmins-Contacts@ca.com";
 							break;
 						}
 					}
