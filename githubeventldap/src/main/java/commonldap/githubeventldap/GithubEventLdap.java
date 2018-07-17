@@ -437,7 +437,7 @@ public class GithubEventLdap {
 						if (processPolicyOnPublicizedRepositories(sOrg, sRepo)) {
 							String sSubject = "A "+sLocation+" Repository Was Made Public Without Authorization";
 					        String bodyText = frame.readTextResource(sResourceFile, sOrg, sRepo, sGithubID, sCorpID);								        								          
-					        frame.sendEmailNotification(email, sSubject, bodyText, true);																				
+					        frame.sendEmailNotification(email, sSubject, bodyText, true);	 																			
 						}
 					}
 					else if (eType.equalsIgnoreCase("fork") &&
