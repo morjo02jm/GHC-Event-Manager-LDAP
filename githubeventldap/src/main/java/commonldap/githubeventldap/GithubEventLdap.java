@@ -47,7 +47,10 @@ public class GithubEventLdap {
 	static JCaContainer cUserInfo = new JCaContainer();
 	static JCaContainer cAuthorizations = new JCaContainer();
 	static JCaContainer cOrg = new JCaContainer();
+	static JCaContainer cIDSInfo = new JCaContainer();
 	static DateFormat dateFormat;
+	static boolean bReportOnly = true;
+	static String sType = "github.com";
 	
 	// Notification
 	static String tagUL = "<ul> ";
@@ -57,16 +60,11 @@ public class GithubEventLdap {
 		// Leaving empty
 	}
 
-	private static boolean isOrgTracked(String tOrg) {
-		if (tOrg.equalsIgnoreCase("CASaaSOps")||
-			tOrg.equalsIgnoreCase("RallySoftware") ||
-			tOrg.equalsIgnoreCase("RallyCommunity") ||
-			tOrg.equalsIgnoreCase("RallyTools") ||
-			tOrg.equalsIgnoreCase("RallyApps") ||
-			tOrg.equalsIgnoreCase("flowdock") ||
-			tOrg.equalsIgnoreCase("CATechnologies") ||
-			tOrg.equalsIgnoreCase("waffleio") ||
-			tOrg.equalsIgnoreCase("Blazemeter")) 
+	private static boolean isOrgTracked(JCaContainer cIDSInfo, String tOrg) {
+		if (sType.equalsIgnoreCase("ghe")) return true;
+		
+		int[] iInfo = cIDSInfo.find("org", tOrg);
+		if (iInfo.length > 0 && cIDSInfo.getString("trackevents", iInfo[0]).equalsIgnoreCase("yes"))
 		{
 			return true;
 		}
@@ -172,32 +170,34 @@ public class GithubEventLdap {
 				}
 			}
 			
-			//Run a curl command to change the repository status to private
-			String sMessage = "Making "+sLocation+" repository, "+sRepo+", in organization, "+sOrg+", private.";
-			String sCommand = "curl -X PATCH -d \" { \\\"private\\\": true } \" -H \"Authorization: token "+sAccessToken+"\"  https://"+sAPI+"/repos/"+sOrg+"/"+sRepo;
-			
-			Process p = Runtime.getRuntime().exec(sCommand);
-	        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));	
-	        //BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-	        
-	        // read the output from the command
-	        frame.printLog(">>>"+sMessage);
-	        String s;
-	        while ((s = stdInput.readLine()) != null) {
-	        	frame.printLog(s);
-	        }	
+			if (!bReportOnly) {
+				//Run a curl command to change the repository status to private
+				String sMessage = "Making "+sLocation+" repository, "+sRepo+", in organization, "+sOrg+", private.";
+				String sCommand = "curl -X PATCH -d \" { \\\"private\\\": true } \" -H \"Authorization: token "+sAccessToken+"\"  https://"+sAPI+"/repos/"+sOrg+"/"+sRepo;
+				
+				Process p = Runtime.getRuntime().exec(sCommand);
+		        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));	
+		        //BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+		        
+		        // read the output from the command
+		        frame.printLog(">>>"+sMessage);
+		        String s;
+		        while ((s = stdInput.readLine()) != null) {
+		        	frame.printLog(s);
+		        }					
+			}
 			
 		}
 		catch (IOException e) {
 			iReturnCode = 201;
 		    frame.printErr("Couldn't read JSON Object from: "+e.getLocalizedMessage());	
-		    frame.printErr(e.getStackTrace().toString());
+		    frame.printErr(e.getLocalizedMessage());
 		    System.exit(iReturnCode);						
 		}
 		catch (JSONException e) {						
 			iReturnCode = 202;
 		    frame.printErr("Couldn't read JSON Object from: "+e.getLocalizedMessage());			
-		    frame.printErr(e.getStackTrace().toString());
+		    frame.printErr(e.getLocalizedMessage());
 		    System.exit(iReturnCode);						
 		}									
 		
@@ -221,12 +221,12 @@ public class GithubEventLdap {
 		String sMapFile = "";
 		String sBCC = "";
 		String sLogPath = "githubeventldap.log";
+		String sIDSFile = "CA_IDS_Enabled_Organizations.tsv";
 				
 		String sGitHubAccessToken = "";
 		String sGitHubComAccessToken = "";
 		String sImagDBPassword = "";
 		String sApp, sAppLocation;
-		String sType = "github.com";
 
     	dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	
@@ -245,6 +245,10 @@ public class GithubEventLdap {
 			{
 				sMapFile = args[++i];
 			}			
+			else if (args[i].compareToIgnoreCase("-idsfile") == 0 )
+			{
+				sIDSFile = args[++i];
+			}			
 			else if (args[i].compareToIgnoreCase("-authfile") == 0 )
 			{
 				sAuthFile = args[++i];
@@ -252,6 +256,10 @@ public class GithubEventLdap {
 			else if (args[i].compareToIgnoreCase("-bcc") == 0 )
 			{
 				sBCC = args[++i];
+			}			
+			else if (args[i].compareToIgnoreCase("-process") == 0 )
+			{
+				bReportOnly = false;
 			}			
 			else if (args[i].compareToIgnoreCase("-log") == 0 )
 			{
@@ -307,6 +315,9 @@ public class GithubEventLdap {
 			if (!sAuthFile.isEmpty()) {
 				frame.readInputListGeneric(cAuthorizations, sMapFile, ',');			
 			}
+			
+			if (sType.equalsIgnoreCase("github.com") && !sIDSFile.isEmpty())
+				frame.readInputListGeneric(cIDSInfo, sIDSFile, '\t');
 			
 			switch (sType) {
 			case "github.com":
@@ -403,29 +414,20 @@ public class GithubEventLdap {
 						}
 					}
 					
-					String eMail = "SourceCode@ca.com";
-					if (!uMail.isEmpty())
-						eMail += ";"+uMail;
-					
-					//If the email is blank, the notice needs to go to the org contacts
-					if (eMail.isEmpty()) {
-						switch (sOrg) {
-						case "RallySoftware":
-						case "RallyApps":
-						case "RallyTools":
-						case "RallyCommunity":
-						case "CASaaSOps":
-						case "waffleio":
-						case "flowdock":
-						case "Blazemeter":
-						case "CATechnologies":
-							eMail = "Team-GIS-githubcom-"+sOrg+"-Contacts@ca.com";
-							break;
-						default:
-							eMail = "Team-GIS-githubcom-GHCAdmins-Contacts@ca.com";
-							break;
-						}
+					String email = "";
+					if (!bReportOnly) {
+						if (!uMail.isEmpty())
+							email = uMail;
+						else {
+							int[] iInfo = cIDSInfo.find("org", sOrg);
+							if (iInfo.length > 0)
+								email = frame.expandDistributionListforEmail("cn=Team - GIS - githubcom - "+sOrg+" - Contacts,ou=self service groups,ou=groups", cLDAP);
+						}						
 					}
+					email += frame.expandDistributionListforEmail("cn=Team - GIS - githubcom - SCO - CA IDS,ou=self service groups,ou=groups", cLDAP);
+					
+					if (email.startsWith(";"))
+						email = email.substring(1);
 					
 					//4. Process Publicized Repos
 					if (eType.equalsIgnoreCase("public") || 
@@ -435,12 +437,12 @@ public class GithubEventLdap {
 						if (processPolicyOnPublicizedRepositories(sOrg, sRepo)) {
 							String sSubject = "A "+sLocation+" Repository Was Made Public Without Authorization";
 					        String bodyText = frame.readTextResource(sResourceFile, sOrg, sRepo, sGithubID, sCorpID);								        								          
-					        frame.sendEmailNotification(eMail, sSubject, bodyText, true);																				
+					        frame.sendEmailNotification(email, sSubject, bodyText, true);																				
 						}
 					}
 					else if (eType.equalsIgnoreCase("fork") &&
 							 (uType.equalsIgnoreCase("user") || 
-							  (uType.equalsIgnoreCase("organization") && !isOrgTracked(tOrg)) ) &&
+							  (uType.equalsIgnoreCase("organization") && !isOrgTracked(cIDSInfo, tOrg)) ) &&
 							 rType.equalsIgnoreCase("private") &&
 							 true /* !bHasCorporateID */ ) {
 						sResourceFile = "Notification_of_Forked_Repository_by_User.txt";
@@ -456,7 +458,7 @@ public class GithubEventLdap {
 					        nIndex = bodyText.indexOf("%6");
 					        if (nIndex >= 0)
 					        	bodyText = bodyText.substring(0, nIndex) +tOrg+ bodyText.substring(nIndex+2);
-					        frame.sendEmailNotification(eMail, sSubject, bodyText, true);																				
+					        frame.sendEmailNotification(email, sSubject, bodyText, true);																				
 						}
 					}
 				}
@@ -468,7 +470,6 @@ public class GithubEventLdap {
 		} catch (Exception e) {
 			iReturnCode = 1;
 		    frame.printErr(e.getLocalizedMessage());			
-		    frame.printErr(e.getStackTrace().toString());			
 		}
 	    System.exit(iReturnCode);		    
 		

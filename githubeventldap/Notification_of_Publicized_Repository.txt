@@ -1,7 +1,8 @@
 Dear CPO Business Unit Administrators:<br><br>
 A GitHub repository, <b>%2</b>, in organization, <b>%1</b>, was changed to or created as a <b>PUBLIC</b> repository 
 by GitHub user id, <b>%3</b>, with corporate id, <b>%4</b>.<br><br>
-As per policy, this repository has been made <b>PRIVATE</b>.<br><br>
+As per policy, this repository has should remain <b>PRIVATE</b> unless authorization to publicize this repository is submitted to 
+the CPO Business Unit.<br><br>
 Note that any public repository in a github.com organization requires a certification from the organization contact that the 
 repository does not contain any confidential source or personal identification data in any file contained in the repository. This 
 certification must be made with the understanding that any content in the repository can be viewed by anyone, including those with 
