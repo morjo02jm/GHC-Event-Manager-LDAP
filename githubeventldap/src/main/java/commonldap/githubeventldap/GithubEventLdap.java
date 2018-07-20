@@ -147,6 +147,8 @@ public class GithubEventLdap {
 	} //readUnprocessedEvents
 	
 	private static boolean processPolicyOnPublicizedRepositories(String sOrg, String sRepo) {
+		if (!isOrgTracked(cIDSInfo, sOrg)) return false;
+		
 		String sURL = "https://"+ sAPI + "/repos/"+ sOrg + "/"+sRepo+"?access_token="+sAccessToken+"&&per_page=1000";
 		try {	
 			JSONObject json = frame.readJsonFromUrl(sURL);
@@ -205,6 +207,8 @@ public class GithubEventLdap {
 	} //processPolicyOnPublicizedRepositories
 	
 	private static boolean processPolicyOnForkedRepositoriesByUser(String sOrg, String sRepo, String sCorpID) {
+		if (!isOrgTracked(cIDSInfo, sOrg)) return false;
+		
 		return true;
 	} //processPolicyOnForkedRepositoriesByUser
 	
@@ -445,7 +449,8 @@ public class GithubEventLdap {
 					}
 					else if (eType.equalsIgnoreCase("fork") &&
 							 (uType.equalsIgnoreCase("user") || 
-							  (uType.equalsIgnoreCase("organization") && !isOrgTracked(cIDSInfo, tOrg)) ) &&
+							  (uType.equalsIgnoreCase("organization") && 
+							   !isOrgTracked(cIDSInfo, tOrg)) ) &&
 							 rType.equalsIgnoreCase("private") &&
 							 true /* !bHasCorporateID */ ) {
 						sResourceFile = "Notification_of_Forked_Repository_by_User.txt";
