@@ -429,7 +429,7 @@ public class GithubEventLdap {
 								email = frame.expandDistributionListforEmail("cn=Team - GIS - githubcom - "+sOrg+" - Contacts,ou=self service groups,ou=groups", cLDAP);
 						}						
 					}
-					email += frame.expandDistributionListforEmail("cn=Team - GIS - githubcom - SCO - CA IDS,ou=self service groups,ou=groups", cLDAP);
+					email += frame.expandDistributionListforEmail("cn=Team - GIS - githubcom - SCO - Contacts,ou=self service groups,ou=groups", cLDAP);
 					
 					//if (email.isEmpty())
 					//	email = "Kellie.Marshall@ca.com;Kristina.McDermott@ca.com";
